@@ -40,4 +40,13 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes,
 });
+
+router.beforeEach((to, from, next) => {
+  if (!to.matched.length) {
+    next({ name: "home" });
+  } else {
+    next();
+  }
+});
+
 export default router;

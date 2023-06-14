@@ -37,7 +37,7 @@ function toggleDialog() {
 let currentPolygonId = ref(null);
 
 onMounted(async () => {
-  map.value = L.map(mapElement.value).setView([-6.25309, -36.53401], 19);
+  map.value = L.map(mapElement.value).setView([-6.264359, -36.516165], 19);
   L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png", {
     maxZoom: 23,
     maxNativeZoom: 19,
@@ -68,16 +68,13 @@ onMounted(async () => {
   var polygonLayer = L.polygon(polygonCoords, {
     id: `${poligono.id}`,
   }).addTo(map.value);
+
+  navigator.geolocation.getCurrentPosition(localizacao);
 });
 
-function addTools() {
-  map.value.pm.addControls({
-    position: "topleft",
-    drawMarker: false,
-    drawPolyline: false,
-    drawText: false,
-    cutPolygon: false,
-  });
+function getLocation() {
+  console.log("getLocation");
+  const e = map.value.locate({ setView: true, maxZoom: 17 });
 }
 </script>
 
@@ -88,7 +85,7 @@ function addTools() {
         <v-row>
           <v-col cols="12">
             <v-btn
-              @click="addTools()"
+              @click="getLocation()"
               :elevation="20"
               icon="mdi-plus"
               color="primary"

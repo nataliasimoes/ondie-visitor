@@ -7,7 +7,11 @@
       color="#000000"
       class="bottom-navigation"
     >
-      <v-btn value="recent" to="/schedule-activity/3">
+      <v-btn to="/">
+        <v-icon>mdi-map</v-icon>
+        Home
+      </v-btn>
+      <v-btn to="/schedule-activity/1">
         <v-icon>mdi-map</v-icon>
         Atividades
       </v-btn>
