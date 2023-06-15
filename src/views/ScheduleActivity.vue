@@ -17,39 +17,22 @@ const activityStore = useActivityStore();
 activityStore.getActivitysByEvent(idEvento);
 const { loading } = storeToRefs(activityStore);
 const activitys = computed((): ActivityType[] => activityStore.activitys);
-// const loading = ref(false);
-// const activitys = ref<ActivityType[]>([
-//   {
-//     id: 1,
-//     nome: "Futsal",
-//     horarioInicial: "2023-06-13T21:21:00.000Z",
-//     horarioFinal: "2023-06-14T21:22:00.000Z",
-//     descricao: "Jogos de Fut7",
-//     poligonoId: 1,
-//     poligono: {
-//       id: 1,
-//       eventoId: 1,
-//       locais: [
-//         {
-//           lat: -6.252891214234326,
-//           lng: -36.53352906338597,
-//         },
-//         {
-//           lat: -6.253011056578026,
-//           lng: -36.533734296503134,
-//         },
-//         {
-//           lat: -6.252641626469215,
-//           lng: -36.53395260866976,
-//         },
-//         {
-//           lat: -6.252521784040862,
-//           lng: -36.53374737555257,
-//         },
-//       ],
-//     },
-//   },
-// ]);
+
+/* Search */
+
+const search = ref("");
+
+/* Filter */
+
+const filteredActivitys = computed(() => {
+  if (search.value === "") {
+    return activitys.value;
+  } else {
+    return activitys.value.filter((item) => {
+      return item.nome.toLowerCase().includes(search.value.toLowerCase());
+    });
+  }
+});
 </script>
 
 <template>
@@ -61,6 +44,25 @@ const activitys = computed((): ActivityType[] => activityStore.activitys);
             Calendário de Atividades
           </h2>
         </div>
+
+        <v-row justify="center" class="mb-1">
+          <v-col
+            cols="11"
+            md="8"
+            lg="5"
+            class="mb-3 text-right"
+            align-self="end"
+          >
+            <!-- implement a search bar -->
+            <v-text-field
+              label="Pesquisar"
+              v-model="search"
+              variant="solo"
+              compact
+              append-inner-icon="mdi-magnify"
+            ></v-text-field>
+          </v-col>
+        </v-row>
 
         <v-col cols="12" class="text-center mt-5 mb-5" v-if="loading > 0">
           <v-progress-circular
@@ -80,7 +82,7 @@ const activitys = computed((): ActivityType[] => activityStore.activitys);
           </div>
           <v-row v-else>
             <v-col
-              v-for="item in activitys"
+              v-for="item in filteredActivitys"
               :key="item.nome"
               class="mb-3"
               cols="12"
