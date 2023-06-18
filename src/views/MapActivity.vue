@@ -36,6 +36,16 @@ function toggleDialog() {
 }
 let currentPolygonId = ref(null);
 
+function localizacao(posicao) {
+  var lat = posicao.coords.latitude;
+  var lon = posicao.coords.longitude;
+
+  // marcador da localização atual
+  var marker2 = L.marker([lat, lon])
+    .addTo(map.value)
+    .bindPopup("aqui está você!!!");
+}
+
 onMounted(async () => {
   map.value = L.map(mapElement.value).setView([-6.264359, -36.516165], 19);
   L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png", {
@@ -51,6 +61,8 @@ onMounted(async () => {
     var layer = e.layer;
     drawnItems.addLayer(layer);
 
+    appbar.value = true;
+
     //adicionar evento quando o poligono for clicado
     layer.on("click", function (e) {
       if (layer.options.id) {
@@ -64,7 +76,9 @@ onMounted(async () => {
 
   /* adiciona no mapa os polígonos já cadastrados */
   const poligono = await polygonStore.getOnePolygon(poligonoId);
-  let polygonCoords = poligono.locais;
+
+  let polygonCoords = poligono[0].locais;
+
   var polygonLayer = L.polygon(polygonCoords, {
     id: `${poligono.id}`,
   }).addTo(map.value);
