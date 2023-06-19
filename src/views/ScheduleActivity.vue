@@ -5,12 +5,11 @@ import { useActivityStore } from "../stores/atividadeStore";
 import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { ActivityType } from "../utils/types";
+import GoBack from "../components/GoBackButton.vue";
 
 /* Current router */
 const router = useRouter();
 const idEvento = parseInt(router.currentRoute.value.params.idevento);
-console.log(idEvento);
-// const idEvento = 1;
 
 /* getActivitys */
 const activityStore = useActivityStore();
@@ -39,10 +38,11 @@ const filteredActivitys = computed(() => {
   <v-container>
     <v-row justify="center">
       <v-col cols="12" md="6" lg="10">
-        <div class="mb-5">
+        <div class="mb-5 position-relative">
           <h2 class="mb-8 mt-5 text-center title-primary">
             Calendário de Atividades
           </h2>
+          <GoBack/>
         </div>
 
         <v-row justify="center" class="mb-1">

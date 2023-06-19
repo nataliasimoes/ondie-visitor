@@ -5,7 +5,7 @@
       absolute
       bg-color="#389c37"
       color="#000000"
-      class="bottom-navigation"
+      class="bottom-navigation position-fixed"
     >
       <v-btn to="/">
         <v-icon>mdi-map</v-icon>

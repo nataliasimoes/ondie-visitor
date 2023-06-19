@@ -7,10 +7,20 @@ import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 import { useRouter } from "vue-router";
 import { usePolygonStore } from "../stores/polygonStore";
 import { storeToRefs } from "pinia";
+import GoBack from "../components/GoBackButton.vue";
 
 /* Current router */
 const router = useRouter();
 const poligonoId = parseInt(router.currentRoute.value.params.poligonoid);
+
+// opções do geolocalization
+const options = {
+  enableHighAccuracy: true,
+  // tempo máximo que a aplicação aceita para uma posição no cache
+  maximumAge: 10000,
+  // tempo no qual uma posição expira
+  timeout: 5000,
+};
 
 /* polygon store */
 const polygonStore = usePolygonStore();
@@ -18,61 +28,25 @@ const polygonStore = usePolygonStore();
 /* map config */
 const mapElement = ref(null);
 var map = ref(null);
-const osmAttrib = "";
-const osmUrl = "http://{s}.tile.osm.org/{z}/{x}/{y}.png";
-const osm = ref(L.tileLayer(osmUrl, { maxZoom: 18, attribution: osmAttrib }));
+var marker = ref(null);
 var drawnItems = ref(null);
-
-const handleCreate = (e) => {
-  var layer = e.layer;
-  drawnItems.addLayer(layer);
-  console.log(layer);
-};
 
 /* dialog */
 let dialog = ref(false);
 function toggleDialog() {
   dialog.value = true;
 }
-let currentPolygonId = ref(null);
-
-function localizacao(posicao) {
-  var lat = posicao.coords.latitude;
-  var lon = posicao.coords.longitude;
-
-  // marcador da localização atual
-  var marker2 = L.marker([lat, lon])
-    .addTo(map.value)
-    .bindPopup("aqui está você!!!");
-}
 
 onMounted(async () => {
-  map.value = L.map(mapElement.value).setView([-6.264359, -36.516165], 19);
+  map = L.map(mapElement.value).setView([-6.264359, -36.516165], 19);
   L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png", {
     maxZoom: 23,
     maxNativeZoom: 19,
-  }).addTo(map.value);
+  }).addTo(map);
 
   drawnItems = new L.FeatureGroup();
 
-  map.value.addLayer(drawnItems);
-
-  map.value.on("pm:create", (e) => {
-    var layer = e.layer;
-    drawnItems.addLayer(layer);
-
-    appbar.value = true;
-
-    //adicionar evento quando o poligono for clicado
-    layer.on("click", function (e) {
-      if (layer.options.id) {
-        getActivitys(layer.options.id);
-      } else {
-        console.log("não tem id");
-        return;
-      }
-    });
-  });
+  map.addLayer(drawnItems);
 
   /* adiciona no mapa os polígonos já cadastrados */
   const poligono = await polygonStore.getOnePolygon(poligonoId);
@@ -81,18 +55,48 @@ onMounted(async () => {
 
   var polygonLayer = L.polygon(polygonCoords, {
     id: `${poligono.id}`,
-  }).addTo(map.value);
+  }).addTo(map);
 
-  navigator.geolocation.getCurrentPosition(localizacao);
+  map.fitBounds(polygonLayer.getBounds(), {maxZoom: 20});
+
+  // esse é a função da api geolocation que pega a posição do dispositivo e assiste a mudança
+  var watcherId = navigator.geolocation.watchPosition(success, error, options);
+
+  // função chamada quando o watchPosition funciona
+  function success(position) {
+    // variáveis adquiridas pelo watchPosition
+    var lat = position.coords.latitude;
+    var lon = position.coords.longitude;
+
+    // verificação se o marcador já existe no mapa
+    if (marker){
+        //caso ele exista, removemos eles, para assim adicionar na posição atualizada
+        map.removeLayer(marker);
+    }
+
+    // marcador da posição do dispositivo
+    marker = L.marker([lat, lon])
+        .addTo(map)
+        .bindPopup("aqui está você!!!");
+  }
+
+  // função chamada quando o watchPosition não funciona
+  function error(err) {
+    if(err === 1){
+        alert("por favor, permita acessar sua localização")
+    } else {
+        alert("não foi possível achar sua localização")
+    }
+  }
 });
 
 function getLocation() {
-  console.log("getLocation");
-  const e = map.value.locate({ setView: true, maxZoom: 17 });
+  map.setView(marker.getLatLng());
 }
 </script>
 
 <template>
+  <GoBack class="margin"/>
   <div class="main">
     <div id="map" ref="mapElement">
       <v-container>
@@ -101,7 +105,7 @@ function getLocation() {
             <v-btn
               @click="getLocation()"
               :elevation="20"
-              icon="mdi-plus"
+              icon="mdi-target-account"
               color="primary"
               class="elevated btn btn-location"
             ></v-btn>

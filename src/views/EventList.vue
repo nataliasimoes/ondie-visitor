@@ -2,6 +2,7 @@
 import { storeToRefs } from "pinia";
 import Activity from "../components/Activity.vue";
 import { useEventStore } from "../stores/eventStore";
+import GoBack from "../components/GoBackButton.vue";
 
 const eventStore = useEventStore();
 eventStore.getEvents();
@@ -12,8 +13,9 @@ const { events, loading } = storeToRefs(eventStore);
   <v-container>
     <v-row justify="center">
       <v-col cols="12" md="6" lg="10">
-        <div class="mb-5">
+        <div class="mb-5 position-relative">
           <h2 class="mb-3 mt-5 text-center title-primary">Lista de Eventos</h2>
+          <GoBack/>
         </div>
 
         <v-row justify="end" class="mb-4">
