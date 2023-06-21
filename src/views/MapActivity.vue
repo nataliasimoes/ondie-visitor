@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from "vue";
-import { onMounted } from "@vue/runtime-core";
+import { onMounted, onBeforeUnmount } from "@vue/runtime-core";
 import * as L from "leaflet";
 import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
@@ -30,6 +30,7 @@ const mapElement = ref(null);
 var map = ref(null);
 var marker = ref(null);
 var drawnItems = ref(null);
+var watcherId = ref(null);
 
 /* dialog */
 let dialog = ref(false);
@@ -38,15 +39,15 @@ function toggleDialog() {
 }
 
 onMounted(async () => {
-  map = L.map(mapElement.value).setView([-6.264359, -36.516165], 19);
+  map.value = L.map(mapElement.value).setView([-6.264359, -36.516165], 19);
   L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png", {
     maxZoom: 23,
     maxNativeZoom: 19,
-  }).addTo(map);
+  }).addTo(map.value);
 
   drawnItems = new L.FeatureGroup();
 
-  map.addLayer(drawnItems);
+  map.value.addLayer(drawnItems);
 
   /* adiciona no mapa os polígonos já cadastrados */
   const poligono = await polygonStore.getOnePolygon(poligonoId);
@@ -55,12 +56,12 @@ onMounted(async () => {
 
   var polygonLayer = L.polygon(polygonCoords, {
     id: `${poligono.id}`,
-  }).addTo(map);
+  }).addTo(map.value);
 
-  map.fitBounds(polygonLayer.getBounds(), {maxZoom: 20});
+  map.value.fitBounds(polygonLayer.getBounds(), {maxZoom: 20});
 
   // esse é a função da api geolocation que pega a posição do dispositivo e assiste a mudança
-  var watcherId = navigator.geolocation.watchPosition(success, error, options);
+  watcherId = navigator.geolocation.watchPosition(success, error, options);
 
   // função chamada quando o watchPosition funciona
   function success(position) {
@@ -69,20 +70,20 @@ onMounted(async () => {
     var lon = position.coords.longitude;
 
     // verificação se o marcador já existe no mapa
-    if (marker){
+    if (marker.value){
         //caso ele exista, removemos eles, para assim adicionar na posição atualizada
-        map.removeLayer(marker);
+        map.value.removeLayer(marker.value);
     }
 
     // marcador da posição do dispositivo
-    marker = L.marker([lat, lon])
-        .addTo(map)
+    marker.value = L.marker([lat, lon])
+        .addTo(map.value)
         .bindPopup("aqui está você!!!");
   }
 
   // função chamada quando o watchPosition não funciona
   function error(err) {
-    if(err === 1){
+    if(err.code === 1){
         alert("por favor, permita acessar sua localização")
     } else {
         alert("não foi possível achar sua localização")
@@ -90,8 +91,12 @@ onMounted(async () => {
   }
 });
 
+onBeforeUnmount(() => {
+  navigator.geolocation.clearWatch(watcherId);
+});
+
 function getLocation() {
-  map.setView(marker.getLatLng());
+  map.value.setView(marker.value.getLatLng());
 }
 </script>
 

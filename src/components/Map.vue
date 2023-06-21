@@ -1,10 +1,11 @@
 <script setup>
 import { ref } from "vue";
-import { onMounted } from "@vue/runtime-core";
+import { onMounted, onBeforeUnmount } from "@vue/runtime-core";
 
 const mapElement = ref(null);
 var map = ref(null);
 var marker = ref(null);
+var watcherId = ref(null);
 
 // opções do geolocalization
 const options = {
@@ -16,14 +17,14 @@ const options = {
 };
 
 onMounted(() => {
-  map = L.map(mapElement.value).setView([-6.264359, -36.516165], 19);
+  map.value = L.map(mapElement.value).setView([-6.264359, -36.516165], 19);
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 23,
     maxNativeZoom: 19, // caso não tenha o zoom, ele pega o atual e amplia,
-  }).addTo(map);
+  }).addTo(map.value);
 
   // esse é a função da api geolocation que pega a posição do dispositivo e assiste a mudança
-  var watcherId = navigator.geolocation.watchPosition(success, error, options);
+  watcherId = navigator.geolocation.watchPosition(success, error, options);
 
   // função chamada quando o watchPosition funciona
   function success(position) {
@@ -32,20 +33,20 @@ onMounted(() => {
     var lon = position.coords.longitude;
 
     // verificação se o marcador já existe no mapa
-    if (marker){
+    if (marker.value){
         //caso ele exista, removemos eles, para assim adicionar na posição atualizada
-        map.removeLayer(marker);
+        map.value.removeLayer(marker.value);
     }
 
     // marcador da posição do dispositivo
-    marker = L.marker([lat, lon])
-        .addTo(map)
+    marker.value = L.marker([lat, lon])
+        .addTo(map.value)
         .bindPopup("aqui está você!!!");
   }
 
   // função chamada quando o watchPosition não funciona
   function error(err) {
-    if(err === 1){
+    if(err.code === 1){
         alert("por favor, permita acessar sua localização")
     } else {
         alert("não foi possível achar sua localização")
@@ -53,8 +54,12 @@ onMounted(() => {
   }
 });
 
+onBeforeUnmount(() => {
+  navigator.geolocation.clearWatch(watcherId);
+});
+
 function getLocation() {
-  map.setView(marker.getLatLng());
+  map.value.setView(marker.value.getLatLng());
 }
 </script>
 
