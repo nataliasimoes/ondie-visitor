@@ -1,11 +1,37 @@
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { onMounted, onBeforeUnmount } from "@vue/runtime-core";
+import * as L from "leaflet";
+import "@geoman-io/leaflet-geoman-free";
+import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
+import { storeToRefs } from "pinia";
+import { usePolygonStore } from "../stores/polygonStore";
+import { useActivityStore } from "../stores/atividadeStore";
+
+// esse arquivo é para uso futuro caso seja necessário um tela para exibir todos os poligonos
+
+/* polygon store */
+const polygonStore = usePolygonStore();
+
+/* getActivitys */
+const activityStore = useActivityStore();
+async function getActivitys(idPoligono) {
+  await activityStore.getActivitys(idPoligono);
+}
+const { activitys, loading } = storeToRefs(activityStore);
 
 const mapElement = ref(null);
 var map = ref(null);
 var marker = ref(null);
 var watcherId = ref(null);
+var drawnItems = ref(null);
+
+/* dialog */
+let dialog = ref(false);
+function toggleDialog() {
+  dialog.value = true;
+}
+let currentPolygonId = ref(null);
 
 // opções do geolocalization
 const options = {
@@ -45,6 +71,23 @@ onMounted(async () => {
     maxZoom: 23,
     maxNativeZoom: 19, // caso não tenha o zoom, ele pega o atual e amplia,
   }).addTo(map.value);
+
+  drawnItems = new L.FeatureGroup();
+  map.value.addLayer(drawnItems);
+
+  /* adiciona no mapa os polígonos já cadastrados */
+  await polygonStore.getPolygons('1');
+
+  const { polygons } = storeToRefs(polygonStore);
+
+  polygons.value.forEach((polygon) => {
+    let polygonCoords = polygon.locais;
+    var polygonLayer = L.polygon(polygonCoords, {
+      id: `${polygon.id}`,
+    }).addTo(map.value).bindPopup(`${polygon.id}`);
+
+    drawnItems.addLayer(polygonLayer);
+  });
 
   // esse é a função da api geolocation que pega a posição do dispositivo e assiste a mudança
   watcherId = navigator.geolocation.watchPosition(success, error, options);

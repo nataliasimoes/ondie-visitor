@@ -8,6 +8,7 @@ import { useRouter } from "vue-router";
 import { usePolygonStore } from "../stores/polygonStore";
 import { storeToRefs } from "pinia";
 import GoBack from "../components/GoBackButton.vue";
+import { centerOfMass } from '@turf/turf';
 
 /* Current router */
 const router = useRouter();
@@ -58,6 +59,14 @@ onMounted(async () => {
     id: `${poligono.id}`,
   }).addTo(map.value);
 
+  //aqui fazemos o mapeamento do nosso poligono para um poligno utilizado pelo GEOJSON
+  const polygonGeoJSON = {
+    type: "Polygon",
+    coordinates: [polygonCoords.map(coord => [coord.lng, coord.lat])]
+  };
+  // com isso definimos um ponto como centro do poligono através do centerOfMass da biblioteca turf
+  var center = centerOfMass(polygonGeoJSON);
+
   map.value.fitBounds(polygonLayer.getBounds(), {maxZoom: 20});
 
   // esse é a função da api geolocation que pega a posição do dispositivo e assiste a mudança
@@ -79,6 +88,16 @@ onMounted(async () => {
     marker.value = L.marker([lat, lon])
         .addTo(map.value)
         .bindPopup("aqui está você!!!");
+
+        // point1 é a localização atual do usuário
+        let point1 = L.latLng(lat, lon);
+        // point1 é o centro do poligono que já definimos
+        // devemos inverter a ordem das coordenadas para que funcione aqui
+        let point2 = L.latLng(center.geometry.coordinates[1], center.geometry.coordinates[0]);
+
+        // aqui o leaflet calcula a distáncia entre os 2 pontos
+        const distance = point1.distanceTo(point2);
+        console.log(distance); // Distância em metros
   }
 
   // função chamada quando o watchPosition não funciona
