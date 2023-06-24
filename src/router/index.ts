@@ -4,6 +4,7 @@ import Home from "../views/Home.vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import EventList from "../views/EventList.vue";
 import MapActivity from "../views/MapActivity.vue";
+import EventPoligon from "../views/EventPoligon.vue"
 
 const routes = [
   {
@@ -33,6 +34,11 @@ const routes = [
     path: "/map-activity/:poligonoid",
     name: "map-activity",
     component: MapActivity,
+  },
+  {
+    path: "/event",
+    name: "event",
+    component: EventPoligon,
   },
 ];
 

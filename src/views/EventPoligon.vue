@@ -61,22 +61,25 @@ onMounted(async () => {
       maxZoom: 20,
       subdomains:['mt0','mt1','mt2','mt3']
     }).addTo(map.value);
+    
     # GoogleMaps Híbrido
-    googleHybrid = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{
+    */
+    L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{
       maxZoom: 20,
       subdomains:['mt0','mt1','mt2','mt3']
     }).addTo(map.value);
-  */
+    /*
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 23,
     maxNativeZoom: 19, // caso não tenha o zoom, ele pega o atual e amplia,
   }).addTo(map.value);
+  */
 
   drawnItems = new L.FeatureGroup();
   map.value.addLayer(drawnItems);
 
   /* adiciona no mapa os polígonos já cadastrados */
-  await polygonStore.getPolygons('1');
+  await polygonStore.getPolygons('5');
 
   const { polygons } = storeToRefs(polygonStore);
 
